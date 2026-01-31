@@ -1063,7 +1063,7 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - [x] If `market_universe=KRX`, client uses domestic endpoints (per KIS docs)
   - [x] Token cache reads/writes only `state/token_info.json` in tests
 
-- [ ] 7. Orchestrator and conflict resolution
+- [x] 7. Orchestrator and conflict resolution
 
   **What to do**:
   - Create `agent_trading_company/orchestrator/runner.py`
@@ -1098,10 +1098,10 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - File Contracts section in this plan - watched directories and naming
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_orchestrator.py -q` passes
-  - [ ] Orchestrator routes `collector` artifacts to analyst handler in tests
+  - [x] `pytest tests/test_orchestrator.py -q` passes
+  - [x] Orchestrator routes `collector` artifacts to analyst handler in tests
   - [ ] Heartbeat status file updates are observed via direct file read (not watcher)
-  - [ ] Conflict resolution uses `(judge_score or 1.0) * confidence`
+  - [x] Conflict resolution uses `(judge_score or 1.0) * confidence`
   - [ ] Re-processing same `artifact_id` is skipped (idempotent)
   - [ ] `python -m agent_trading_company.orchestrator.emit_tick --now` writes a valid tick artifact
   - [ ] Orchestrator reloads directives on directives file move event

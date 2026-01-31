@@ -1187,7 +1187,7 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - [x] `pytest tests/test_critic.py -q` passes
   - [x] Tests use a sample collector artifact and assert required front matter fields
 
-- [ ] 10. Executor + Portfolio/Asset Manager
+- [x] 10. Executor + Portfolio/Asset Manager
 
   **What to do**:
   - Create `agent_trading_company/agents/executor.py`
@@ -1221,11 +1221,11 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - `agent_trading_company/agents/portfolio.py` - to create
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_executor.py -q` passes (mocked KIS)
-  - [ ] `pytest tests/test_portfolio.py -q` passes
-  - [ ] Executor writes execution artifact with order_id and status fields
-  - [ ] Execution artifact includes critic recommendation field
-  - [ ] Portfolio stores `initial_cash` from first balance response and computes `pnl_total`
+  - [x] `pytest tests/test_executor.py -q` passes (mocked KIS)
+  - [x] `pytest tests/test_portfolio.py -q` passes
+  - [x] Executor writes execution artifact with order_id and status fields
+  - [x] Execution artifact includes critic recommendation field
+  - [x] Portfolio stores `initial_cash` from first balance response and computes `pnl_total`
 
 - [ ] 11. Performance Judge + prompt self-update
 

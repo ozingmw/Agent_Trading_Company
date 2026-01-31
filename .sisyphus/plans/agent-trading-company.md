@@ -65,10 +65,10 @@ Create a production-lean MVP for a live, autonomous trading firm built from coop
 - Automated test suite using pytest
 
 ### Definition of Done
-- [ ] `pytest -q` passes for all new tests
-- [ ] Agents write markdown artifacts with valid schema and references
-- [ ] Orchestrator detects file events and dispatches agents
-- [ ] KIS client tests pass with mocked responses (no live orders in tests)
+- [x] `pytest -q` passes for all new tests
+- [x] Agents write markdown artifacts with valid schema and references
+- [x] Orchestrator detects file events and dispatches agents
+- [x] KIS client tests pass with mocked responses (no live orders in tests)
 
 ### Must Have
 - Event-driven file watcher (no polling loop)
@@ -1289,7 +1289,7 @@ Expected artifacts appear under:
 Note: run smoke without KIS env vars to verify fail-fast and avoid real orders.
 
 ### Final Checklist
-- [ ] All required agents produce markdown artifacts
-- [ ] Orchestrator dispatches on file events
-- [ ] KIS client tests pass with mocks
-- [ ] No UI, no backtesting, no guardrails implemented
+- [x] All required agents produce markdown artifacts
+- [x] Orchestrator dispatches on file events
+- [x] KIS client tests pass with mocks
+- [x] No UI, no backtesting, no guardrails implemented

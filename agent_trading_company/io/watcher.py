@@ -23,7 +23,7 @@ def _is_ready_path(path: Path) -> bool:
     return path.suffix == ".md" and not path.name.endswith(".md.tmp")
 
 
-@dataclass
+@dataclass(frozen=True)
 class ArtifactReadyHandler(FileSystemEventHandler):
     on_ready: ReadyHandler
 

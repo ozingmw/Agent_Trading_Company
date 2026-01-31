@@ -8,6 +8,7 @@ import yaml
 
 from agent_trading_company.core.directives import compute_directive_hash
 from agent_trading_company.io.atomic_writer import atomic_write
+from agent_trading_company.llm.router import get_router
 
 
 @dataclass(frozen=True)
@@ -49,7 +50,9 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
     analyst_path = Path(artifact_path)
     signal = _parse_signal(analyst_path)
 
-    recommendation = "APPROVE" if signal.confidence >= 0.3 else "REJECT"
+    router = get_router()
+    result = router.invoke("critic_review", {"confidence": signal.confidence})
+    recommendation = str(result.get("recommendation", "APPROVE"))
     directive_hash = compute_directive_hash(Path("directives/admin_directives.md").read_text(encoding="utf-8"))
     output_path = Path("artifacts/critic") / f"{now.strftime('%Y%m%d_%H%M%SZ')}_critic-1_critic_cr1.md"
     front_matter = {
@@ -63,7 +66,7 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
         "payload": {
             "recommendation": recommendation,
             "adjustment": None,
-            "notes": "No issues detected" if recommendation == "APPROVE" else "Low confidence",
+            "notes": result.get("notes", "No issues detected"),
         },
         "status": "completed",
     }

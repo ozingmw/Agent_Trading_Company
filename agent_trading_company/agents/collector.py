@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 from agent_trading_company.core.directives import compute_directive_hash
 from agent_trading_company.io.atomic_writer import atomic_write
 from agent_trading_company.kis.client import KISClient, MissingEnvError
+from agent_trading_company.llm.router import get_router
 from agent_trading_company.storage.store import Store
 
 
@@ -179,10 +180,19 @@ def run(artifact_path: str, directives: dict, store: Store) -> str:
             _error_artifact(now, str(exc))
             sources.remove("kis")
 
-    if market_universe.upper() == "KRX":
-        sources = [source for source in sources if source in ("kis", "dart", "naver_board")]
-    if market_universe.upper() == "OVERSEAS":
-        sources = [source for source in sources if source in ("kis", "naver_finance")]
+    router = get_router()
+    budget_remaining = max(budget["cap"] - budget["used_total"], 0)
+    plan = router.invoke(
+        "collector_plan",
+        {
+            "market_universe": market_universe,
+            "enabled_sources": sources,
+            "budget_remaining": budget_remaining,
+            "has_kis": kis_client is not None,
+            "has_dart": bool(os.getenv("DART_API_KEY")),
+        },
+    )
+    sources = list(plan.get("sources", sources))
 
     for entry in entries:
         if market_universe.upper() == "OVERSEAS" and entry.exchange not in ("NASD", "NYSE", "AMEX"):

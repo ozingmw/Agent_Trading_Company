@@ -5,6 +5,7 @@ from pathlib import Path
 
 from agent_trading_company.agents import analyst
 from agent_trading_company.core.directives import load_directives
+from agent_trading_company.llm import router as llm_router
 
 
 def _write_collector_artifact(tmp_path: Path, data_path: Path) -> Path:
@@ -43,6 +44,20 @@ def test_analyst_writes_signal(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
     directives_obj, _ = load_directives(directives)
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {
+                "symbol": "AAPL",
+                "exchange": "NASD",
+                "side": "BUY",
+                "order_type": "LIMIT",
+                "limit_price": 101,
+                "size_hint": 2,
+                "confidence": 0.6,
+            }
+
+    llm_router.set_router(DummyRouter())
 
     data_path = tmp_path / "data" / "raw" / "kis_quotes.jsonl"
     data_path.parent.mkdir(parents=True, exist_ok=True)

@@ -16,6 +16,7 @@ from agent_trading_company.orchestrator.runner import (
     load_directives_with_hash,
     route_artifact,
 )
+from agent_trading_company.llm import router as llm_router
 
 
 def _write_artifact(path: Path, front: dict, body: str = "") -> None:
@@ -49,8 +50,14 @@ def test_route_from_collector_to_analyst(tmp_path: Path) -> None:
     )
 
     registry = [
-        type("Spec", (), {"role": "analyst", "enabled": True})(),
+        type("Spec", (), {"role": "analyst", "enabled": True, "agent_id": "analyst-1"})(),
     ]
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {"targets": ["analyst-1"]}
+
+    llm_router.set_router(DummyRouter())
 
     targets = route_artifact(artifact, registry)
     assert len(targets) == 1

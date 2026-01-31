@@ -24,7 +24,7 @@ python3 -m venv .venv
 
 If you’re not using a requirements file, install the project dependencies manually:
 ```bash
-.venv/bin/python -m pip install pytest watchdog requests pydantic responses pyyaml python-dotenv beautifulsoup4 lxml
+.venv/bin/python -m pip install pytest watchdog requests pydantic responses pyyaml python-dotenv beautifulsoup4 lxml openai
 ```
 
 ### 2) Configure env
@@ -35,6 +35,7 @@ REAL_SECRET_KEY=
 REAL_CANO=
 REAL_ACNT_PRDT_CD=
 DART_API_KEY=
+OPENAI_API_KEY=
 ```
 
 ### 3) Run tests

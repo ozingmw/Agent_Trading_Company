@@ -9,6 +9,7 @@ import yaml
 
 from agent_trading_company.core.directives import compute_directive_hash
 from agent_trading_company.io.atomic_writer import atomic_write
+from agent_trading_company.llm.router import get_router
 
 
 @dataclass(frozen=True)
@@ -72,12 +73,16 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
     if not quotes:
         raise ValueError("No quotes found in KIS JSONL")
 
-    side = "BUY"
-    confidence = 0.5
-    if len(quotes) >= 2:
-        if quotes[-1].price < quotes[-2].price:
-            side = "SELL"
-        confidence = 0.6 if side == "BUY" else 0.55
+    router = get_router()
+    skill_result = router.invoke(
+        "analyst_signal",
+        {
+            "quotes": [quote.__dict__ for quote in quotes],
+            "default_order_size": directives.get("default_order_size", 1),
+        },
+    )
+    side = str(skill_result.get("side", "BUY"))
+    confidence = float(skill_result.get("confidence", 0.5))
 
     directive_hash = compute_directive_hash(Path("directives/admin_directives.md").read_text(encoding="utf-8"))
     output_path = Path("artifacts/analyst") / f"{now.strftime('%Y%m%d_%H%M%SZ')}_analyst-1_analyst_a1.md"
@@ -93,9 +98,9 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
             "symbol": quotes[-1].symbol,
             "exchange": quotes[-1].exchange,
             "side": side,
-            "order_type": "LIMIT",
-            "limit_price": quotes[-1].price,
-            "size_hint": float(directives.get("default_order_size", 1)),
+            "order_type": skill_result.get("order_type", "LIMIT"),
+            "limit_price": skill_result.get("limit_price", quotes[-1].price),
+            "size_hint": float(skill_result.get("size_hint", directives.get("default_order_size", 1))),
             "confidence": confidence,
         },
         "status": "completed",

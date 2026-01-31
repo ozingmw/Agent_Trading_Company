@@ -10,6 +10,7 @@ import yaml
 
 from agent_trading_company.core.directives import compute_directive_hash
 from agent_trading_company.io.atomic_writer import atomic_write
+from agent_trading_company.llm.router import get_router
 
 
 @dataclass(frozen=True)
@@ -57,17 +58,8 @@ def _load_portfolio_snapshots(limit: int = 20) -> list[PortfolioSnapshot]:
     return snapshots
 
 
-def _score_quant(snapshots: list[PortfolioSnapshot]) -> float:
-    if len(snapshots) < 2:
-        return 0.0
-    returns = [snapshots[i].pnl_total - snapshots[i - 1].pnl_total for i in range(1, len(snapshots))]
-    mean_val = statistics.mean(returns)
-    std_val = statistics.pstdev(returns) + 1e-9
-    return mean_val / std_val
-
-
-def _score_qual() -> float:
-    return statistics.mean([3, 3, 3])
+def _returns_series(snapshots: list[PortfolioSnapshot]) -> list[float]:
+    return [snapshots[i].pnl_total - snapshots[i - 1].pnl_total for i in range(1, len(snapshots))]
 
 
 def _prompt_template(agent_id: str, directive_hash: str) -> str:
@@ -115,16 +107,19 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
     directive_hash = compute_directive_hash(Path("directives/admin_directives.md").read_text(encoding="utf-8"))
 
     snapshots = _load_portfolio_snapshots(20)
-    score = _score_quant(snapshots) if snapshots else _score_qual()
+    returns = _returns_series(snapshots) if snapshots else []
 
     active_agents = _load_active_agents(Path("agent_trading_company/orchestrator/registry.yml"))
-    scores = {agent_id: score for agent_id in active_agents if agent_id.startswith("analyst")}
-    leaderboard_top = next(iter(scores.keys()), "")
+    analyst_ids = [agent_id for agent_id in active_agents if agent_id.startswith("analyst")]
+    router = get_router()
+    decision = router.invoke("judge_score", {"returns": returns, "agent_ids": analyst_ids})
+    scores = decision.get("scores", {})
+    leaderboard_top = decision.get("leaderboard_top", "")
 
     references = []
     for agent_id in scores.keys():
         prompt_path = _ensure_prompt(agent_id, directive_hash)
-        history_path = _update_prompt(prompt_path, directive_hash, score)
+        history_path = _update_prompt(prompt_path, directive_hash, float(scores.get(agent_id, 0)))
         references.append(str(history_path))
 
     output_path = Path("artifacts/leaderboard") / f"{now.strftime('%Y%m%d_%H%M%SZ')}_judge-1_leaderboard_j1.md"
@@ -148,7 +143,7 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
 
     content = (
         f"---\n{yaml.safe_dump(front_matter, sort_keys=False).strip()}\n---\n"
-        f"Leaderboard updated. Top agent: {leaderboard_top} score={score:.2f}\n"
+        f"Leaderboard updated. Top agent: {leaderboard_top} score={float(scores.get(leaderboard_top, 0)):.2f}\n"
     )
     atomic_write(output_path, content)
     return str(output_path)

@@ -14,6 +14,7 @@ from agent_trading_company.core.status_registry import StatusEntry, now_utc, upd
 from agent_trading_company.io.atomic_writer import atomic_write
 from agent_trading_company.io.file_lock import file_lock
 from agent_trading_company.io.watcher import ArtifactReadyHandler, start_watcher
+from agent_trading_company.llm.router import get_router
 from agent_trading_company.storage.state import init_state_store
 
 
@@ -147,21 +148,22 @@ def _update_status(agent_id: str, status: str, current_task: str, last_artifact:
 def route_artifact(path: Path, registry: list[AgentSpec]) -> list[AgentSpec]:
     fm = _parse_front_matter(path)
     role = fm.get("role")
-    if role == "collector":
-        return [spec for spec in registry if spec.role == "analyst" and spec.enabled]
-    if role == "analyst":
-        return [spec for spec in registry if spec.role == "critic" and spec.enabled]
-    if role == "critic":
-        return [spec for spec in registry if spec.role == "executor" and spec.enabled]
-    if role == "executor":
-        return [spec for spec in registry if spec.role == "portfolio" and spec.enabled]
-    if role == "portfolio":
-        return [spec for spec in registry if spec.role == "judge" and spec.enabled]
-    if role == "orchestrator":
-        payload = fm.get("payload", {})
-        if payload.get("tick_type") in ("startup", "interval"):
-            return [spec for spec in registry if spec.role == "collector" and spec.enabled]
-    return []
+    payload = fm.get("payload", {})
+    router = get_router()
+    decision = router.invoke(
+        "orchestrator_route",
+        {
+            "role": role,
+            "payload": payload,
+            "enabled_agents": [
+                {"agent_id": spec.agent_id, "role": spec.role}
+                for spec in registry
+                if spec.enabled
+            ],
+        },
+    )
+    targets = set(decision.get("targets", []))
+    return [spec for spec in registry if spec.agent_id in targets and spec.enabled]
 
 
 def _scan_conflicts(artifact_path: Path) -> Path:

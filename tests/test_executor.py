@@ -6,6 +6,7 @@ import pytest
 
 from agent_trading_company.agents import executor
 from agent_trading_company.kis import client as kis_client
+from agent_trading_company.llm import router as llm_router
 
 
 class DummyClient:
@@ -64,6 +65,20 @@ def test_executor_writes_execution_artifact(tmp_path: Path, monkeypatch: pytest.
     )
 
     monkeypatch.setattr(kis_client.KISClient, "from_env", lambda: DummyClient())
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {
+                "symbol": "AAPL",
+                "exchange": "NASD",
+                "side": "BUY",
+                "order_type": "LIMIT",
+                "limit_price": 101,
+                "size_hint": 1,
+                "critic_recommendation": "APPROVE",
+            }
+
+    llm_router.set_router(DummyRouter())
 
     output = executor.run(
         str(analyst_path),

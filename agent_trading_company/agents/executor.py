@@ -10,6 +10,7 @@ from agent_trading_company.core.directives import compute_directive_hash
 from agent_trading_company.io.atomic_writer import atomic_write
 from agent_trading_company.kis.client import KISClient
 from agent_trading_company.kis.errors import UnsupportedMarket
+from agent_trading_company.llm.router import get_router
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,11 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
     critic_path = Path(str(directives.get("critic_artifact", "")))
     signal = _parse_signal(analyst_path)
     critic = _parse_critic(critic_path) if critic_path.exists() else {"recommendation": ""}
+    router = get_router()
+    decision = router.invoke(
+        "executor_decision",
+        {"analyst": signal.__dict__, "critic": critic},
+    )
 
     directive_hash = compute_directive_hash(Path("directives/admin_directives.md").read_text(encoding="utf-8"))
     output_path = Path("artifacts/executor") / f"{now.strftime('%Y%m%d_%H%M%SZ')}_executor-1_executor_e1.md"
@@ -77,11 +83,11 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
     try:
         response = client.place_order(
             directives.get("market_universe", "KRX"),
-            signal.exchange,
-            signal.symbol,
-            signal.side,
-            int(signal.size_hint),
-            signal.limit_price,
+            decision.get("exchange", signal.exchange),
+            decision.get("symbol", signal.symbol),
+            decision.get("side", signal.side),
+            int(decision.get("size_hint", signal.size_hint)),
+            decision.get("limit_price", signal.limit_price),
         )
         order_id = str(response.get("output", {}).get("ODNO", ""))
         status = "SUBMITTED"
@@ -100,8 +106,10 @@ def run(artifact_path: str, directives: dict, store: object) -> str:
         "payload": {
             "order_id": order_id,
             "status": status,
-            "symbol": signal.symbol,
-            "critic_recommendation": critic.get("recommendation", ""),
+            "symbol": decision.get("symbol", signal.symbol),
+            "critic_recommendation": decision.get(
+                "critic_recommendation", critic.get("recommendation", "")
+            ),
         },
         "status": "completed",
     }

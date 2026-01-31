@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from agent_trading_company.agents import critic
+from agent_trading_company.llm import router as llm_router
 
 
 def test_critic_writes_recommendation(tmp_path: Path, monkeypatch) -> None:
@@ -30,6 +31,12 @@ def test_critic_writes_recommendation(tmp_path: Path, monkeypatch) -> None:
         "---\n",
         encoding="utf-8",
     )
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {"recommendation": "APPROVE", "notes": "ok"}
+
+    llm_router.set_router(DummyRouter())
 
     output = critic.run(str(analyst_path), {}, object())
     output_path = Path(output)

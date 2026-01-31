@@ -6,6 +6,7 @@ import pytest
 
 from agent_trading_company.agents import portfolio
 from agent_trading_company.kis import client as kis_client
+from agent_trading_company.llm import router as llm_router
 from agent_trading_company.storage.sqlite_store import SQLiteStore
 
 
@@ -43,6 +44,12 @@ def test_portfolio_writes_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPat
 
     store = SQLiteStore(db_path=tmp_path / "state" / "agent_state.sqlite")
     monkeypatch.setattr(kis_client.KISClient, "from_env", lambda: DummyClient())
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {"cash": payload["cash"], "positions_count": 0, "pnl_total": 0}
+
+    llm_router.set_router(DummyRouter())
 
     output = portfolio.run(str(execution_path), {}, store)
     output_path = Path(output)

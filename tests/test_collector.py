@@ -8,6 +8,7 @@ import responses
 from agent_trading_company.agents import collector
 from agent_trading_company.core.directives import load_directives
 from agent_trading_company.storage.sqlite_store import SQLiteStore
+from agent_trading_company.llm import router as llm_router
 
 
 @responses.activate
@@ -59,6 +60,12 @@ def test_collector_creates_artifact_and_registers_data(tmp_path: Path, monkeypat
 
     directives_obj, _ = load_directives(directives)
     store = SQLiteStore(db_path=tmp_path / "state" / "agent_state.sqlite")
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {"sources": ["kis", "naver_finance"], "errors": []}
+
+    llm_router.set_router(DummyRouter())
     artifact_path = collector.run("", directives_obj.__dict__, store)
 
     artifact_file = Path(artifact_path)
@@ -96,6 +103,12 @@ def test_collector_emits_error_on_missing_dart_key(tmp_path: Path, monkeypatch: 
 
     directives_obj, _ = load_directives(directives)
     store = SQLiteStore(db_path=tmp_path / "state" / "agent_state.sqlite")
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {"sources": ["dart"], "errors": []}
+
+    llm_router.set_router(DummyRouter())
     artifact_path = collector.run("", directives_obj.__dict__, store)
 
     assert Path(artifact_path).exists()

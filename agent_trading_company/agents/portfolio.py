@@ -10,6 +10,7 @@ from agent_trading_company.core.directives import compute_directive_hash
 from agent_trading_company.io.atomic_writer import atomic_write
 from agent_trading_company.kis.client import KISClient
 from agent_trading_company.storage.store import Store
+from agent_trading_company.llm.router import get_router
 
 
 @dataclass(frozen=True)
@@ -63,9 +64,17 @@ def run(artifact_path: str, directives: dict, store: Store) -> str:
     initial_cash = _load_initial_cash(store, client)
 
     positions = store.get_positions()
-    market_value = sum(float(pos.get("market_value", 0)) for pos in positions)
     cash = initial_cash
-    pnl_total = (market_value + cash) - initial_cash
+    router = get_router()
+    decision = router.invoke(
+        "portfolio_snapshot",
+        {
+            "cash": cash,
+            "positions": positions,
+            "initial_cash": initial_cash,
+        },
+    )
+    pnl_total = float(decision.get("pnl_total", 0))
 
     directive_hash = compute_directive_hash(Path("directives/admin_directives.md").read_text(encoding="utf-8"))
     output_path = Path("artifacts/portfolio") / f"{now.strftime('%Y%m%d_%H%M%SZ')}_portfolio-1_portfolio_p1.md"
@@ -78,8 +87,8 @@ def run(artifact_path: str, directives: dict, store: Store) -> str:
         "outputs": [str(output_path)],
         "directive_hash": directive_hash,
         "payload": {
-            "cash": cash,
-            "positions_count": len(positions),
+            "cash": float(decision.get("cash", cash)),
+            "positions_count": int(decision.get("positions_count", len(positions))),
             "pnl_total": pnl_total,
         },
         "status": "completed",

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from agent_trading_company.agents import judge
+from agent_trading_company.llm import router as llm_router
 
 
 def _write_portfolio(path: Path, pnl_total: float) -> None:
@@ -40,6 +41,12 @@ def test_judge_quant_and_prompt_history(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
 
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {"scores": {"analyst-1": 1.0}, "leaderboard_top": "analyst-1", "rationale": None}
+
+    llm_router.set_router(DummyRouter())
+
     portfolio_dir = tmp_path / "artifacts" / "portfolio"
     _write_portfolio(portfolio_dir / "p1.md", 100)
     _write_portfolio(portfolio_dir / "p2.md", 110)
@@ -68,6 +75,12 @@ def test_judge_qualitative_fallback(tmp_path: Path, monkeypatch) -> None:
         "- agent_id: \"analyst-1\"\n  role: \"analyst\"\n  handler: \"x\"\n  enabled: true\n",
         encoding="utf-8",
     )
+
+    class DummyRouter:
+        def invoke(self, name, payload):
+            return {"scores": {"analyst-1": 3.0}, "leaderboard_top": "analyst-1", "rationale": None}
+
+    llm_router.set_router(DummyRouter())
 
     leaderboard = judge.run("artifacts/portfolio/p1.md", {}, object())
     assert Path(leaderboard).exists()

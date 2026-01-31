@@ -1106,7 +1106,7 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - [x] `python -m agent_trading_company.orchestrator.emit_tick --now` writes a valid tick artifact
   - [x] Orchestrator reloads directives on directives file move event
 
-- [ ] 8. Data Collector agent (v1 sources)
+- [x] 8. Data Collector agent (v1 sources)
 
   **What to do**:
   - Create `agent_trading_company/agents/collector.py`
@@ -1145,12 +1145,12 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - `config/corp_code_map.csv` - KRX corp_code mapping
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_collector.py -q` passes
-  - [ ] Collector writes markdown summary with JSONL file references
-  - [ ] JSONL records include required keys per Collector Source Contracts
-  - [ ] If DART enabled and `DART_API_KEY` missing, emits error artifact and skips DART
-  - [ ] If `data_budget_cap` exceeded, emits error artifact and stops new fetches
-  - [ ] `state/data_budget.json` contains `{date, cap, used_total, used_by_source}`
+  - [x] `pytest tests/test_collector.py -q` passes
+  - [x] Collector writes markdown summary with JSONL file references
+  - [x] JSONL records include required keys per Collector Source Contracts
+  - [x] If DART enabled and `DART_API_KEY` missing, emits error artifact and skips DART
+  - [x] If `data_budget_cap` exceeded, emits error artifact and stops new fetches
+  - [x] `state/data_budget.json` contains `{date, cap, used_total, used_by_source}`
 
 - [ ] 9. Analyst + Critic agents
 

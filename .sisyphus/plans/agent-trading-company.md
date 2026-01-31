@@ -974,7 +974,7 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - [x] Tests write `.md.tmp` then rename to `.md` and watcher emits a ready event for the final path
   - [x] Tests invoke handler directly with synthetic `on_moved` and `on_created` events
 
-- [ ] 5. Admin directives + status tracking
+- [x] 5. Admin directives + status tracking
 
   **What to do**:
 - Create `directives/admin_directives.md`
@@ -1006,8 +1006,8 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - Admin Directives Schema section in this plan
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_directives.py -q` passes
-  - [ ] Directive changes update `directive_hash` per Parsing & Validation Rules
+  - [x] `pytest tests/test_directives.py -q` passes
+  - [x] Directive changes update `directive_hash` per Parsing & Validation Rules
 
 - [ ] 6. KIS OpenAPI client wrapper (mock-tested)
 

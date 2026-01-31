@@ -1009,7 +1009,7 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - [x] `pytest tests/test_directives.py -q` passes
   - [x] Directive changes update `directive_hash` per Parsing & Validation Rules
 
-- [ ] 6. KIS OpenAPI client wrapper (mock-tested)
+- [x] 6. KIS OpenAPI client wrapper (mock-tested)
 
   **What to do**:
   - Create `agent_trading_company/kis/client.py` for auth, orders, queries
@@ -1058,10 +1058,10 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - `agent_trading_company/kis/errors.py` - to create
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_kis_client.py -q` passes (mocked responses)
-  - [ ] Client reads required env vars and fails fast if missing
-  - [ ] If `market_universe=KRX`, client uses domestic endpoints (per KIS docs)
-  - [ ] Token cache reads/writes only `state/token_info.json` in tests
+  - [x] `pytest tests/test_kis_client.py -q` passes (mocked responses)
+  - [x] Client reads required env vars and fails fast if missing
+  - [x] If `market_universe=KRX`, client uses domestic endpoints (per KIS docs)
+  - [x] Token cache reads/writes only `state/token_info.json` in tests
 
 - [ ] 7. Orchestrator and conflict resolution
 

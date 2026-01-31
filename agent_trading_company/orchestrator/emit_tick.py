@@ -16,7 +16,7 @@ def _format_timestamp(value: datetime) -> str:
     return value.strftime("%Y%m%d_%H%M%SZ")
 
 
-def build_tick_content(timestamp: datetime, tick_type: str) -> str:
+def build_tick_content(timestamp: datetime, tick_type: str, directive_hash: str) -> str:
     iso_ts = timestamp.replace(microsecond=0).isoformat().replace("+00:00", "Z")
     artifact_id = f"tick-{_format_timestamp(timestamp)}-{uuid4()}"
     return (
@@ -27,7 +27,7 @@ def build_tick_content(timestamp: datetime, tick_type: str) -> str:
         f"created_at: \"{iso_ts}\"\n"
         "inputs: []\n"
         f"outputs: [\"artifacts/system/tick-{_format_timestamp(timestamp)}.md\"]\n"
-        "directive_hash: \"" + "" + "\"\n"
+        f"directive_hash: \"{directive_hash}\"\n"
         "payload:\n"
         f"  tick_type: \"{tick_type}\"\n"
         f"  tick_at: \"{iso_ts}\"\n"
@@ -41,7 +41,13 @@ def build_tick_content(timestamp: datetime, tick_type: str) -> str:
 def emit_tick(now: datetime | None = None, tick_type: str = "interval") -> Path:
     timestamp = now or _now_utc()
     path = Path("artifacts/system") / f"tick-{_format_timestamp(timestamp)}.md"
-    content = build_tick_content(timestamp, tick_type)
+    directive_path = Path("directives/admin_directives.md")
+    directive_hash = ""
+    if directive_path.exists():
+        directive_hash = directive_path.read_text(encoding="utf-8")
+        directive_hash = directive_hash.replace("\r\n", "\n")
+        directive_hash = __import__("hashlib").sha256(directive_hash.encode("utf-8")).hexdigest()
+    content = build_tick_content(timestamp, tick_type, directive_hash)
     return atomic_write(path, content)
 
 

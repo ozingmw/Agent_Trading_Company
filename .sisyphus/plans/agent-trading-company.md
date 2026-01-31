@@ -1100,11 +1100,11 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   **Acceptance Criteria**:
   - [x] `pytest tests/test_orchestrator.py -q` passes
   - [x] Orchestrator routes `collector` artifacts to analyst handler in tests
-  - [ ] Heartbeat status file updates are observed via direct file read (not watcher)
+  - [x] Heartbeat status file updates are observed via direct file read (not watcher)
   - [x] Conflict resolution uses `(judge_score or 1.0) * confidence`
-  - [ ] Re-processing same `artifact_id` is skipped (idempotent)
-  - [ ] `python -m agent_trading_company.orchestrator.emit_tick --now` writes a valid tick artifact
-  - [ ] Orchestrator reloads directives on directives file move event
+  - [x] Re-processing same `artifact_id` is skipped (idempotent)
+  - [x] `python -m agent_trading_company.orchestrator.emit_tick --now` writes a valid tick artifact
+  - [x] Orchestrator reloads directives on directives file move event
 
 - [ ] 8. Data Collector agent (v1 sources)
 

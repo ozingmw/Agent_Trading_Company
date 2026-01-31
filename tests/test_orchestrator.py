@@ -6,7 +6,16 @@ from pathlib import Path
 import yaml
 
 from agent_trading_company.orchestrator.emit_tick import build_tick_content
-from agent_trading_company.orchestrator.runner import _parse_front_matter, _resolve_conflict, route_artifact
+from agent_trading_company.orchestrator.runner import (
+    _already_processed,
+    _mark_processed,
+    _parse_front_matter,
+    _resolve_conflict,
+    _status_path,
+    _update_status,
+    load_directives_with_hash,
+    route_artifact,
+)
 
 
 def _write_artifact(path: Path, front: dict, body: str = "") -> None:
@@ -17,7 +26,7 @@ def _write_artifact(path: Path, front: dict, body: str = "") -> None:
 
 def test_emit_tick_builds_valid_front_matter() -> None:
     now = datetime(2026, 1, 30, 12, 0, 0, tzinfo=timezone.utc)
-    content = build_tick_content(now, "interval")
+    content = build_tick_content(now, "interval", "hash")
     assert "role: \"orchestrator\"" in content
     assert "tick_type" in content
 
@@ -122,3 +131,28 @@ def test_parse_front_matter_handles_yaml(tmp_path: Path) -> None:
     )
     fm = _parse_front_matter(file_path)
     assert fm["role"] == "collector"
+
+
+def test_status_update_written_to_disk(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _update_status("collector-1", "working", "collect", "artifacts/collector/a1.md")
+    status_path = _status_path("collector-1")
+    assert status_path.exists()
+    content = status_path.read_text(encoding="utf-8")
+    assert "agent_id" in content
+
+
+def test_processed_artifact_idempotency(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _mark_processed("a1")
+    assert _already_processed("a1")
+
+
+def test_load_directives_with_hash(tmp_path: Path) -> None:
+    directives = tmp_path / "directives"
+    directives.mkdir(parents=True, exist_ok=True)
+    path = directives / "admin_directives.md"
+    path.write_text("---\nmarket_universe: KRX\n---\n", encoding="utf-8")
+    data = load_directives_with_hash(path)
+    assert data["market_universe"] == "KRX"
+    assert data["directive_hash"]

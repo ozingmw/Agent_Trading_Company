@@ -77,6 +77,13 @@ def _already_processed(artifact_id: str) -> bool:
     return artifact_id in _read_processed()
 
 
+def load_directives_with_hash(path: Path) -> dict:
+    directives, directive_hash = load_directives(path)
+    data = directives.__dict__.copy()
+    data["directive_hash"] = directive_hash
+    return data
+
+
 def _parse_front_matter(path: Path) -> dict:
     content = path.read_text(encoding="utf-8")
     lines = content.splitlines()
@@ -199,9 +206,7 @@ def handle_artifact(artifact_path: Path, registry: list[AgentSpec]) -> None:
     if fm.get("role") == "analyst":
         selected_path = _scan_conflicts(artifact_path)
 
-    directives, directive_hash = load_directives(Path("directives/admin_directives.md"))
-    directives_data = directives.__dict__.copy()
-    directives_data["directive_hash"] = directive_hash
+    directives_data = load_directives_with_hash(Path("directives/admin_directives.md"))
 
     store = init_state_store()
     targets = route_artifact(selected_path, registry)
@@ -218,8 +223,14 @@ def handle_artifact(artifact_path: Path, registry: list[AgentSpec]) -> None:
 def run() -> None:
     registry = _load_registry(Path("agent_trading_company/orchestrator/registry.yml"))
 
+    directives_cache = load_directives_with_hash(Path("directives/admin_directives.md"))
+
     def on_ready(path: Path) -> None:
+        nonlocal directives_cache
         if "/status/" in str(path):
+            return
+        if "/directives/" in str(path):
+            directives_cache = load_directives_with_hash(Path("directives/admin_directives.md"))
             return
         handle_artifact(path, registry)
 
@@ -237,7 +248,7 @@ def run() -> None:
         f"created_at: \"{now.replace(microsecond=0).isoformat().replace('+00:00','Z')}\"\n"
         "inputs: []\n"
         "outputs: [\"artifacts/system/startup.md\"]\n"
-        "directive_hash: \"" + compute_directive_hash(Path("directives/admin_directives.md").read_text(encoding="utf-8")) + "\"\n"
+        f"directive_hash: \"{directives_cache['directive_hash']}\"\n"
         "payload:\n"
         "  tick_type: \"startup\"\n"
         f"  tick_at: \"{now.replace(microsecond=0).isoformat().replace('+00:00','Z')}\"\n"

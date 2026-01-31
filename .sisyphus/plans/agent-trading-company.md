@@ -1152,7 +1152,7 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - [x] If `data_budget_cap` exceeded, emits error artifact and stops new fetches
   - [x] `state/data_budget.json` contains `{date, cap, used_total, used_by_source}`
 
-- [ ] 9. Analyst + Critic agents
+- [x] 9. Analyst + Critic agents
 
   **What to do**:
   - Create `agent_trading_company/agents/analyst.py`
@@ -1183,9 +1183,9 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - `agent_trading_company/agents/critic.py` - to create
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_analyst.py -q` passes
-  - [ ] `pytest tests/test_critic.py -q` passes
-  - [ ] Tests use a sample collector artifact and assert required front matter fields
+  - [x] `pytest tests/test_analyst.py -q` passes
+  - [x] `pytest tests/test_critic.py -q` passes
+  - [x] Tests use a sample collector artifact and assert required front matter fields
 
 - [ ] 10. Executor + Portfolio/Asset Manager
 

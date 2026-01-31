@@ -1227,7 +1227,7 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - [x] Execution artifact includes critic recommendation field
   - [x] Portfolio stores `initial_cash` from first balance response and computes `pnl_total`
 
-- [ ] 11. Performance Judge + prompt self-update
+- [x] 11. Performance Judge + prompt self-update
 
   **What to do**:
   - Create `agent_trading_company/agents/judge.py`
@@ -1261,11 +1261,11 @@ Critical Path: Task 1 -> Task 2 -> Task 4 -> Task 6 -> Task 7 -> Task 10 -> Task
   - Prompt Storage Contract section in this plan
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_judge.py -q` passes
-  - [ ] Leaderboard md created with `payload.scores` for all active agents
-  - [ ] Prompt history is append-only and its path appears in `references`
-  - [ ] Initial prompts exist for all agents
-  - [ ] Tests cover both quantitative (tick window) and qualitative fallback paths
+  - [x] `pytest tests/test_judge.py -q` passes
+  - [x] Leaderboard md created with `payload.scores` for all active agents
+  - [x] Prompt history is append-only and its path appears in `references`
+  - [x] Initial prompts exist for all agents
+  - [x] Tests cover both quantitative (tick window) and qualitative fallback paths
 
 ---
 

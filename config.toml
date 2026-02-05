@@ -1,0 +1,42 @@
+[app]
+cycle_seconds = 60
+session_check_seconds = 60
+log_level = "INFO"
+
+[markets]
+enable_kr = true
+enable_us = true
+
+[kis]
+mode = "paper" # paper or live
+base_url = "https://openapi.koreainvestment.com:9443"
+token_url_paper = "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
+token_url_live = "https://openapi.koreainvestment.com:9443/oauth2/token"
+app_key_env = "KIS_APP_KEY"
+app_secret_env = "KIS_APP_SECRET"
+account_env = "KIS_ACCOUNT_NO"
+
+[data_sources]
+newsapi_enabled = true
+newsapi_api_key_env = "NEWSAPI_KEY"
+newsapi_query = "stock market"
+newsapi_language = "en"
+naver_rss = ["https://news.naver.com/main/rss/main.naver?section=101"]
+daum_rss = ["https://rss.daum.net/finance.xml"]
+reddit_enabled = true
+reddit_subreddits = ["stocks", "wallstreetbets", "investing"]
+reddit_user_agent = "atc-bot/0.1"
+
+[llm]
+provider = "openai"
+model = "gpt-4o-mini"
+temperature = 0.2
+
+[universe]
+seed_symbols_kr = ["005930", "000660"]
+seed_symbols_us = ["AAPL", "MSFT", "NVDA"]
+max_symbols = 50
+
+[dashboard]
+host = "0.0.0.0"
+port = 8000

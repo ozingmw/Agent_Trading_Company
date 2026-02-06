@@ -22,8 +22,9 @@ class CoordinatorAgent(BaseAgent):
                 cycle_id=cycle_id,
             )
 
-            symbols_kr = list(self.context.config.universe.seed_symbols_kr)
-            symbols_us = list(self.context.config.universe.seed_symbols_us)
+            universe = self.context.universe_manager.snapshot()
+            symbols_kr = universe.symbols_kr
+            symbols_us = universe.symbols_us
             await self.emit(
                 "DataRequest",
                 {"symbols_kr": symbols_kr, "symbols_us": symbols_us},

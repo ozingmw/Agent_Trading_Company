@@ -50,6 +50,7 @@ class AuditLog:
                     "quotes_count": len(summary.get("quotes", {})),
                     "news_count": len(summary.get("news", [])),
                     "social_count": len(summary.get("social", [])),
+                    "trends_count": len(summary.get("trends", [])),
                     "notes": summary.get("notes", []),
                 }
             }

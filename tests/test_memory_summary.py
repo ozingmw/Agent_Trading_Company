@@ -8,6 +8,7 @@ from atc.events import Event, EventBus, EventRecorder
 from atc.guidelines import GuidelineManager
 from atc.memory import MemoryManager
 from atc.session_manager import SessionManager
+from atc.universe import UniverseManager
 
 
 def _make_context(tmp_path: Path) -> AgentContext:
@@ -17,12 +18,20 @@ def _make_context(tmp_path: Path) -> AgentContext:
             "markets": {"enable_kr": True, "enable_us": True},
             "kis": {
                 "mode": "paper",
-                "base_url": "https://example.com",
+                "base_url_paper": "https://example.com",
+                "base_url_live": "https://example.com",
                 "token_url_paper": "https://example.com/token",
                 "token_url_live": "https://example.com/token",
-                "app_key_env": "KIS_APP_KEY",
-                "app_secret_env": "KIS_APP_SECRET",
-                "account_env": "KIS_ACCOUNT_NO",
+                "paper": {
+                    "app_key_env": "KIS_PAPER_APP_KEY",
+                    "app_secret_env": "KIS_PAPER_APP_SECRET",
+                    "account_env": "KIS_PAPER_ACCOUNT_NO",
+                },
+                "live": {
+                    "app_key_env": "KIS_LIVE_APP_KEY",
+                    "app_secret_env": "KIS_LIVE_APP_SECRET",
+                    "account_env": "KIS_LIVE_ACCOUNT_NO",
+                },
             },
             "data_sources": {
                 "newsapi_enabled": False,
@@ -47,6 +56,7 @@ def _make_context(tmp_path: Path) -> AgentContext:
     guidelines = GuidelineManager(tmp_path / "agent_guidelines.md", tmp_path / "agents")
     memory = MemoryManager(tmp_path / "memory")
     session = SessionManager(config.markets)
+    universe = UniverseManager([], [], 10)
     return AgentContext(
         config=config,
         secrets=secrets,
@@ -58,6 +68,7 @@ def _make_context(tmp_path: Path) -> AgentContext:
         event_recorder=recorder,
         data_collector=object(),
         broker=object(),
+        universe_manager=universe,
     )
 
 

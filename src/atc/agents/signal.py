@@ -18,9 +18,28 @@ class SignalAgent(BaseAgent):
             else None
         )
 
+    def _select_model(self) -> str:
+        mode = self.context.config.kis.mode
+        if mode == "paper":
+            return (
+                self.context.secrets.openai_model_paper
+                or self.context.secrets.openai_model
+                or self.context.config.llm.model_paper
+                or self.context.config.llm.model
+                or "gpt-5-mini"
+            )
+        return (
+            self.context.secrets.openai_model_live
+            or self.context.secrets.openai_model
+            or self.context.config.llm.model_live
+            or self.context.config.llm.model
+            or "gpt-5-mini"
+        )
+
     def _build_prompt(self, summary: MarketDataSummary) -> str:
         news_titles = [item.title for item in summary.news[:8]]
         social_titles = [item.title for item in summary.social[:8]]
+        trends = summary.trends[:10]
         lines = [
             "You are a trading signal agent.",
             "Return JSON only:",
@@ -30,6 +49,7 @@ class SignalAgent(BaseAgent):
             f"Quotes: {json.dumps(summary.quotes, ensure_ascii=True)}",
             f"News: {json.dumps(news_titles, ensure_ascii=True)}",
             f"Social: {json.dumps(social_titles, ensure_ascii=True)}",
+            f"Trends: {json.dumps(trends, ensure_ascii=True)}",
         ]
         return "\n".join(lines)
 
@@ -74,7 +94,7 @@ class SignalAgent(BaseAgent):
             batch = None
             try:
                 response = self.client.responses.create(
-                    model=self.context.config.llm.model,
+                    model=self._select_model(),
                     input=prompt,
                     temperature=self.context.config.llm.temperature,
                 )
@@ -91,10 +111,14 @@ class SignalAgent(BaseAgent):
                     "quotes_count": len(summary.quotes),
                     "news_count": len(summary.news),
                     "social_count": len(summary.social),
+                    "trends_count": len(summary.trends),
                     "summary_notes": summary.notes,
                 },
                 cycle_id=cycle_id,
-                prompt=f"Signal prompt with {len(summary.quotes)} quotes, {len(summary.news)} news, {len(summary.social)} social items.",
+                prompt=(
+                    f"Signal prompt with {len(summary.quotes)} quotes, {len(summary.news)} news, "
+                    f"{len(summary.social)} social items, {len(summary.trends)} trends."
+                ),
                 response=response_text,
             )
             await self.emit(

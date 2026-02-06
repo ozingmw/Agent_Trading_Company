@@ -9,15 +9,31 @@ enable_us = true
 
 [kis]
 mode = "paper" # paper or live
-base_url = "https://openapi.koreainvestment.com:9443"
-token_url_paper = "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
+base_url_paper = "https://openapivts.koreainvestment.com:29443"
+base_url_live = "https://openapi.koreainvestment.com:9443"
+token_url_paper = "https://openapivts.koreainvestment.com:29443/oauth2/tokenP"
 token_url_live = "https://openapi.koreainvestment.com:9443/oauth2/token"
-app_key_env = "KIS_APP_KEY"
-app_secret_env = "KIS_APP_SECRET"
-account_env = "KIS_ACCOUNT_NO"
+
+[kis.paper]
+app_key_env = "KIS_PAPER_APP_KEY"
+app_secret_env = "KIS_PAPER_APP_SECRET"
+account_env = "KIS_PAPER_ACCOUNT_NO"
+
+[kis.live]
+app_key_env = "KIS_LIVE_APP_KEY"
+app_secret_env = "KIS_LIVE_APP_SECRET"
+account_env = "KIS_LIVE_ACCOUNT_NO"
+
+[kis.tr_id]
+# Adjust TR IDs based on KIS mock/live portal documentation.
+quote_kr = "FHKST01010100"
+quote_us = "HHDFS00000300"
+balance = "TTTC8434R"
+buy = "TTTC0802U"
+sell = "TTTC0801U"
 
 [data_sources]
-newsapi_enabled = true
+newsapi_enabled = false
 newsapi_api_key_env = "NEWSAPI_KEY"
 newsapi_query = "stock market"
 newsapi_language = "en"
@@ -29,7 +45,8 @@ reddit_user_agent = "atc-bot/0.1"
 
 [llm]
 provider = "openai"
-model = "gpt-4o-mini"
+model_paper = "gpt-5-mini"
+model_live = "gpt-5-mini"
 temperature = 0.2
 
 [universe]

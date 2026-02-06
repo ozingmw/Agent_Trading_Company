@@ -20,14 +20,20 @@ class KisClient:
     def __init__(self, config: AppConfig, secrets: Secrets) -> None:
         self.config = config
         self.secrets = secrets
-        self.base_url = config.kis.base_url.rstrip("/")
-        self.token_url = (
-            config.kis.token_url_paper if config.kis.mode == "paper" else config.kis.token_url_live
-        )
+        if config.kis.mode == "paper":
+            self.base_url = config.kis.base_url_paper.rstrip("/")
+            self.token_url = config.kis.token_url_paper
+            self.app_key = secrets.kis_paper_app_key
+            self.app_secret = secrets.kis_paper_app_secret
+            self.account_no = secrets.kis_paper_account_no
+        else:
+            self.base_url = config.kis.base_url_live.rstrip("/")
+            self.token_url = config.kis.token_url_live
+            self.app_key = secrets.kis_live_app_key
+            self.app_secret = secrets.kis_live_app_secret
+            self.account_no = secrets.kis_live_account_no
         self._token: Optional[KisToken] = None
-        self.enabled = all(
-            [secrets.kis_app_key, secrets.kis_app_secret, secrets.kis_account_no]
-        )
+        self.enabled = all([self.app_key, self.app_secret, self.account_no])
 
     def _get_token(self) -> Optional[str]:
         if not self.enabled:
@@ -37,8 +43,8 @@ class KisClient:
             return self._token.value
         payload = {
             "grant_type": "client_credentials",
-            "appkey": self.secrets.kis_app_key,
-            "appsecret": self.secrets.kis_app_secret,
+            "appkey": self.app_key,
+            "appsecret": self.app_secret,
         }
         resp = requests.post(self.token_url, json=payload, timeout=10)
         if resp.status_code != 200:
@@ -54,8 +60,8 @@ class KisClient:
     def _headers(self, tr_id: str) -> Dict[str, str]:
         token = self._get_token()
         headers = {
-            "appkey": self.secrets.kis_app_key or "",
-            "appsecret": self.secrets.kis_app_secret or "",
+            "appkey": self.app_key or "",
+            "appsecret": self.app_secret or "",
             "tr_id": tr_id,
         }
         if token:
@@ -70,11 +76,11 @@ class KisClient:
             if market == "KR":
                 endpoint = "uapi/domestic-stock/v1/quotations/inquire-price"
                 params = {"fid_cond_mrkt_div_code": "J", "fid_input_iscd": symbol}
-                tr_id = "FHKST01010100"
+                tr_id = self.config.kis.tr_id.quote_kr
             else:
                 endpoint = "uapi/overseas-stock/v1/quotations/price"
                 params = {"EXCD": "NAS", "SYMB": symbol}
-                tr_id = "HHDFS00000300"
+                tr_id = self.config.kis.tr_id.quote_us
             url = f"{self.base_url}/{endpoint}"
             resp = requests.get(url, headers=self._headers(tr_id), params=params, timeout=10)
             if resp.status_code != 200:
@@ -94,9 +100,9 @@ class KisClient:
         if not self.enabled:
             return {}
         endpoint = "uapi/domestic-stock/v1/trading/inquire-balance"
-        tr_id = "TTTC8434R"
+        tr_id = self.config.kis.tr_id.balance
         params = {
-            "CANO": self.secrets.kis_account_no or "",
+            "CANO": self.account_no or "",
             "ACNT_PRDT_CD": "01",
             "AFHR_FLPR_YN": "N",
             "OFL_YN": "N",
@@ -133,9 +139,9 @@ class KisClient:
         if not self.enabled:
             return AccountSnapshot(cash=0.0, positions={})
         endpoint = "uapi/domestic-stock/v1/trading/inquire-balance"
-        tr_id = "TTTC8434R"
+        tr_id = self.config.kis.tr_id.balance
         params = {
-            "CANO": self.secrets.kis_account_no or "",
+            "CANO": self.account_no or "",
             "ACNT_PRDT_CD": "01",
             "AFHR_FLPR_YN": "N",
             "OFL_YN": "N",
@@ -169,9 +175,9 @@ class KisClient:
                 status="REJECTED_NO_CREDENTIALS",
             )
         endpoint = "uapi/domestic-stock/v1/trading/order-cash"
-        tr_id = "TTTC0802U" if request.side == "BUY" else "TTTC0801U"
+        tr_id = self.config.kis.tr_id.buy if request.side == "BUY" else self.config.kis.tr_id.sell
         payload = {
-            "CANO": self.secrets.kis_account_no or "",
+            "CANO": self.account_no or "",
             "ACNT_PRDT_CD": "01",
             "PDNO": request.symbol,
             "ORD_DVSN": "00" if request.order_type == "MARKET" else "01",

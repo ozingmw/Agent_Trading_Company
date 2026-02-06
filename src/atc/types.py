@@ -35,6 +35,7 @@ class MarketDataSummary(BaseModel):
     quotes: Dict[str, float] = Field(default_factory=dict)
     news: List[NewsItem] = Field(default_factory=list)
     social: List[SocialPost] = Field(default_factory=list)
+    trends: List[str] = Field(default_factory=list)
     notes: List[str] = Field(default_factory=list)
 
 

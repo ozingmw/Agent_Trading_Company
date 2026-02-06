@@ -26,6 +26,7 @@ class AgentContext:
     event_recorder: EventRecorder
     data_collector: object
     broker: object
+    universe_manager: object
 
 
 class AgentRegistry:
@@ -55,6 +56,7 @@ class BaseAgent:
         self.context.memory_manager.init_agent_memory(name)
         self.global_guidelines = self.context.guideline_manager.load_global()
         self.agent_guidelines = self.context.guideline_manager.load_agent(name)
+        self.logger.info("onboarded")
 
     async def emit(self, event_type: str, payload: dict, cycle_id: Optional[str] = None) -> None:
         event = Event(type=event_type, payload=payload, source=self.name, cycle_id=cycle_id)

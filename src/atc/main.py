@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import sys
+from pathlib import Path
+
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import uvicorn
 
@@ -14,9 +19,10 @@ from atc.config import load_config, load_secrets
 from atc.data.collector import DataCollector
 from atc.events import EventBus, EventRecorder
 from atc.guidelines import GuidelineManager
-from atc.logging import configure_logging
+from atc.logging_utils import configure_logging
 from atc.memory import MemoryManager
 from atc.session_manager import SessionManager
+from atc.universe import UniverseManager
 
 
 async def main_async() -> None:
@@ -32,8 +38,13 @@ async def main_async() -> None:
     session_manager = SessionManager(config.markets)
 
     kis_client = KisClient(config, secrets)
-    broker = PaperBroker() if config.kis.mode == "paper" else kis_client
+    broker = kis_client if kis_client.enabled else PaperBroker()
     data_collector = DataCollector(config, secrets, kis_client)
+    universe_manager = UniverseManager(
+        config.universe.seed_symbols_kr,
+        config.universe.seed_symbols_us,
+        config.universe.max_symbols,
+    )
 
     registry = AgentRegistry()
     context = AgentContext(
@@ -47,10 +58,17 @@ async def main_async() -> None:
         event_recorder=event_recorder,
         data_collector=data_collector,
         broker=broker,
+        universe_manager=universe_manager,
     )
 
     runner = AgentRunner(context, registry)
-    app_state = AppState(bus=bus, audit=audit, broker=broker, registry=registry)
+    app_state = AppState(
+        bus=bus,
+        audit=audit,
+        broker=broker,
+        registry=registry,
+        universe_manager=universe_manager,
+    )
     app = create_app(app_state)
 
     server = uvicorn.Server(

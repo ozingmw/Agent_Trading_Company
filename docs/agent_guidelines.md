@@ -16,6 +16,7 @@
 ## Data handling
 - Process KIS, news, and social data in memory only.
 - Summaries and derived features may be referenced in audit logs.
+- Universe updates are driven by DataCollectionAgent via `UniverseUpdated` events.
 
 ## Safety
 - If unclear or data is missing, emit `HOLD` and explain why.

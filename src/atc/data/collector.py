@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+from collections import Counter
 from typing import Iterable, List
 
 from atc.config import AppConfig, Secrets
@@ -48,9 +50,35 @@ class DataCollector:
                 )
             )
 
+        trends = self._extract_trends(news_items, social_items)
         return MarketDataSummary(
             quotes=quotes,
             news=news_items,
             social=social_items,
+            trends=trends,
             notes=notes,
         )
+
+    def extract_symbol_candidates(self, summary: MarketDataSummary) -> tuple[list[str], list[str]]:
+        us_candidates: List[str] = []
+        kr_candidates: List[str] = []
+        text = " ".join([item.title for item in summary.news + summary.social])
+
+        for match in re.findall(r"\b\d{6}\b", text):
+            kr_candidates.append(match)
+
+        for match in re.findall(r"\$?[A-Z]{2,5}\b", text):
+            cleaned = match.replace("$", "")
+            if cleaned in {"USA", "FED", "ETF", "CEO", "GDP", "CPI", "USD"}:
+                continue
+            us_candidates.append(cleaned)
+
+        return sorted(set(kr_candidates)), sorted(set(us_candidates))
+
+    def _extract_trends(self, news_items: list, social_items: list) -> List[str]:
+        titles = " ".join([item.title for item in news_items + social_items]).lower()
+        words = re.findall(r"[a-zA-Z]{3,}", titles)
+        stop = {"the", "and", "for", "with", "that", "this", "from", "into", "will", "stock"}
+        filtered = [word for word in words if word not in stop]
+        counts = Counter(filtered)
+        return [word for word, _ in counts.most_common(10)]

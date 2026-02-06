@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 
 from atc.audit import AuditLog
 from atc.events import EventBus
@@ -20,20 +21,35 @@ class AppState:
     audit: AuditLog
     broker: Any
     registry: Any
+    universe_manager: Any
 
 
 def create_app(state: AppState) -> FastAPI:
     app = FastAPI(title="Agent Trading Company")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[\"http://localhost:5173\", \"http://127.0.0.1:5173\"],
-        allow_methods=[\"*\"],
-        allow_headers=[\"*\"],
+        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     @app.get("/api/health")
     def health() -> dict:
         return {"status": "ok"}
+
+    @app.get("/")
+    def root() -> dict:
+        return {
+            "status": "ok",
+            "message": "ATC API is running.",
+            "docs": "/docs",
+            "health": "/api/health",
+            "dashboard": "http://localhost:5173",
+        }
+
+    @app.get("/favicon.ico")
+    def favicon() -> Response:
+        return Response(status_code=204)
 
     @app.get("/api/positions")
     def positions() -> dict:
@@ -73,6 +89,15 @@ def create_app(state: AppState) -> FastAPI:
     def audit_latest() -> dict:
         return {"events": state.audit.latest_events()}
 
+    @app.get("/api/universe")
+    def universe() -> dict:
+        snapshot = state.universe_manager.snapshot()
+        return {
+            "symbols_kr": snapshot.symbols_kr,
+            "symbols_us": snapshot.symbols_us,
+            "trends": snapshot.trends,
+        }
+
     @app.get("/api/stream")
     async def stream() -> StreamingResponse:
         queue = await state.bus.subscribe("*")
@@ -87,7 +112,8 @@ def create_app(state: AppState) -> FastAPI:
                     "cycle_id": event.cycle_id,
                     "payload": event.payload,
                 }
-                yield f"data: {json.dumps(payload)}\n\n"
+                safe_payload = jsonable_encoder(payload)
+                yield f"data: {json.dumps(safe_payload)}\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
 

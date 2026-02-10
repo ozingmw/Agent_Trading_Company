@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(STATE_FILE=\".omc/state/setup-state.json\":*)",
+      "Bash(if [ -f \"$STATE_FILE\" ])",
+      "Bash(then cat \"$STATE_FILE\")",
+      "Bash(else echo \"No previous state found\")",
+      "Bash(fi)",
+      "mcp__plugin_oh-my-claudecode_t__ast_grep_search"
+    ]
+  }
+}
